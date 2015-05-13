@@ -59,6 +59,7 @@ public abstract class FadingActionBarHelperBase {
     private boolean mFirstGlobalLayoutPerformed;
     private FrameLayout mMarginView;
     private View mListViewBackgroundView;
+    private boolean mAllowHeaderTouchEvents = false;
 
     public final <T extends FadingActionBarHelperBase> T actionBarBackground(int drawableResId) {
         mActionBarBackgroundResId = drawableResId;
@@ -107,6 +108,11 @@ public abstract class FadingActionBarHelperBase {
 
     public final <T extends FadingActionBarHelperBase> T  parallax(boolean value) {
         mUseParallax = value;
+        return (T)this;
+    }
+
+    public final <T extends FadingActionBarHelperBase> T allowHeaderTouchEvents(boolean value) {
+        mAllowHeaderTouchEvents = value;
         return (T)this;
     }
 
@@ -229,6 +235,10 @@ public abstract class FadingActionBarHelperBase {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         webView.addView(mMarginView);
 
+        if (mAllowHeaderTouchEvents) {
+            setMarginViewTouchListener();
+        }
+
         return webViewContainer;
     }
 
@@ -248,6 +258,10 @@ public abstract class FadingActionBarHelperBase {
         addHeaderView(mHeaderContainer, mHeaderLayoutResId);
 
         mMarginView = (FrameLayout) contentContainer.findViewById(R.id.fab__content_top_margin);
+
+        if (mAllowHeaderTouchEvents) {
+            setMarginViewTouchListener();
+        }
 
         return scrollViewContainer;
     }
@@ -277,6 +291,9 @@ public abstract class FadingActionBarHelperBase {
         mListViewBackgroundView.setLayoutParams(params);
 
         listView.setOnScrollListener(mOnScrollListener);
+
+        if (mAllowHeaderTouchEvents) { setMarginViewTouchListener(); }
+
         return contentContainer;
     }
 
@@ -360,5 +377,14 @@ public abstract class FadingActionBarHelperBase {
             mHeaderView = mInflater.inflate(headerLayoutResId, headerContainer, false);
         }
         headerContainer.addView(mHeaderView, 0);
+    }
+
+    private void setMarginViewTouchListener() {
+        mMarginView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return mHeaderView.dispatchTouchEvent(event);
+            }
+        });
     }
 }
